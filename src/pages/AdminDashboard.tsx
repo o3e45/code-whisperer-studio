@@ -43,8 +43,8 @@ const AdminDashboard = () => {
 
   const checkAdminStatus = async () => {
     // In a real app, you would check if the user has admin role
-    // For now, we'll simulate this by checking if the user's email ends with @admin.com
-    if (user?.email?.endsWith("@admin.com")) {
+    // For now, we'll simulate this by checking if the user's email ends with @owendobsonholdings.com
+    if (user?.email?.endsWith("@owendobsonholdings.com")) {
       setIsAdmin(true);
     } else {
       // Redirect non-admin users
