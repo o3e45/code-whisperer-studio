@@ -3,14 +3,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CodeBlock from "@/components/ui/CodeBlock";
-
-interface Message {
-  id: number;
-  sender: "user" | "ai";
-  content: string;
-  type?: "text" | "code";
-  language?: string;
-}
+import { Message } from "@/types/chat";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useParams } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 interface ChatInterfaceProps {
   className?: string;
@@ -22,6 +19,8 @@ const ChatInterface = ({ className, initialMessages = [] }: ChatInterfaceProps) 
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const { projectId } = useParams<{ projectId: string }>();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,7 +30,7 @@ const ChatInterface = ({ className, initialMessages = [] }: ChatInterfaceProps) 
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     // Add user message
@@ -46,16 +45,26 @@ const ChatInterface = ({ className, initialMessages = [] }: ChatInterfaceProps) 
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
+    // Save prompt to history if we're in a project
+    if (user && projectId) {
+      try {
+        await supabase.from("prompt_history").insert({
+          user_id: user.id,
+          project_id: projectId,
+          prompt: input
+        });
+      } catch (error) {
+        console.error("Failed to save prompt:", error);
+      }
+    }
+
+    // Simulate AI response - in a real app, this would call an API
     setTimeout(() => {
       let response: Message;
       
       // Demo responses based on input keywords
       if (input.toLowerCase().includes("create") || input.toLowerCase().includes("build")) {
-        response = {
-          id: Date.now() + 1,
-          sender: "ai",
-          content: `
+        const responseContent = `
 import React, { useState } from 'react';
 
 export const TodoApp = () => {
@@ -97,7 +106,11 @@ export const TodoApp = () => {
     </div>
   );
 };
-`,
+`;
+        response = {
+          id: Date.now() + 1,
+          sender: "ai",
+          content: responseContent,
           type: "code",
           language: "typescript",
         };
@@ -106,10 +119,7 @@ export const TodoApp = () => {
         input.toLowerCase().includes("style") ||
         input.toLowerCase().includes("design")
       ) {
-        response = {
-          id: Date.now() + 1,
-          sender: "ai",
-          content: `
+        const responseContent = `
 import React from 'react';
 
 export const GradientButton = () => {
@@ -119,7 +129,11 @@ export const GradientButton = () => {
     </button>
   );
 };
-`,
+`;
+        response = {
+          id: Date.now() + 1,
+          sender: "ai",
+          content: responseContent,
           type: "code",
           language: "typescript",
         };
@@ -130,6 +144,20 @@ export const GradientButton = () => {
           content: "I understand what you're looking for. Let me generate the code for that feature. Would you like a React component or a full page implementation?",
           type: "text",
         };
+      }
+      
+      // Save response to history if we're in a project
+      if (user && projectId) {
+        try {
+          await supabase.from("prompt_history").update({
+            response: response.content
+          })
+          .eq("user_id", user.id)
+          .eq("project_id", projectId)
+          .eq("prompt", userMessage.content);
+        } catch (error) {
+          console.error("Failed to save response:", error);
+        }
       }
       
       setIsTyping(false);
