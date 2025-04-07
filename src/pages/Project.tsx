@@ -9,11 +9,26 @@ import Footer from "@/components/layout/Footer";
 import ChatInterface from "@/components/ui/ChatInterface";
 import { Message } from "@/types/chat";
 
+interface ProjectData {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PromptHistoryItem {
+  id: string;
+  prompt: string;
+  response: string | null;
+  created_at: string;
+}
+
 const Project = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectData | null>(null);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [loadingProject, setLoadingProject] = useState(true);
 
@@ -50,7 +65,7 @@ const Project = () => {
         
         if (historyData) {
           const messages: Message[] = [];
-          historyData.forEach((item, index) => {
+          historyData.forEach((item: PromptHistoryItem, index: number) => {
             // Add user prompt
             messages.push({
               id: index * 2,

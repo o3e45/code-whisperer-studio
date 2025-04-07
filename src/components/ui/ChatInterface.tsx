@@ -30,6 +30,35 @@ const ChatInterface = ({ className, initialMessages = [] }: ChatInterfaceProps) 
     scrollToBottom();
   }, [messages]);
 
+  const savePromptHistory = async (prompt: string) => {
+    if (!user || !projectId) return;
+    
+    try {
+      await supabase.from("prompt_history").insert({
+        user_id: user.id,
+        project_id: projectId,
+        prompt: prompt
+      });
+    } catch (error) {
+      console.error("Failed to save prompt:", error);
+    }
+  };
+
+  const saveResponseToHistory = async (userPrompt: string, responseContent: string) => {
+    if (!user || !projectId) return;
+    
+    try {
+      await supabase.from("prompt_history").update({
+        response: responseContent
+      })
+      .eq("user_id", user.id)
+      .eq("project_id", projectId)
+      .eq("prompt", userPrompt);
+    } catch (error) {
+      console.error("Failed to save response:", error);
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -47,19 +76,11 @@ const ChatInterface = ({ className, initialMessages = [] }: ChatInterfaceProps) 
 
     // Save prompt to history if we're in a project
     if (user && projectId) {
-      try {
-        await supabase.from("prompt_history").insert({
-          user_id: user.id,
-          project_id: projectId,
-          prompt: input
-        });
-      } catch (error) {
-        console.error("Failed to save prompt:", error);
-      }
+      await savePromptHistory(input);
     }
 
     // Simulate AI response - in a real app, this would call an API
-    setTimeout(() => {
+    setTimeout(async () => {
       let response: Message;
       
       // Demo responses based on input keywords
@@ -148,16 +169,7 @@ export const GradientButton = () => {
       
       // Save response to history if we're in a project
       if (user && projectId) {
-        try {
-          await supabase.from("prompt_history").update({
-            response: response.content
-          })
-          .eq("user_id", user.id)
-          .eq("project_id", projectId)
-          .eq("prompt", userMessage.content);
-        } catch (error) {
-          console.error("Failed to save response:", error);
-        }
+        await saveResponseToHistory(userMessage.content, response.content);
       }
       
       setIsTyping(false);

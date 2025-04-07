@@ -1,25 +1,25 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from "@/components/ui/ChatInterface";
 import CodeBlock from "@/components/ui/CodeBlock";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Terminal, Sparkles } from "lucide-react";
+import { Message } from "@/types/chat";
 
 const DemoSection = () => {
   const [activeTab, setActiveTab] = useState("chat");
 
-  // Initial chat messages with proper sender types
-  const initialMessages = [
+  // Initial chat messages with proper types
+  const initialMessages: Message[] = [
     {
       id: 1,
-      sender: "user" as "user", // explicitly type as "user"
+      sender: "user",
       content: "Build me a responsive navigation bar with a logo, links, and a dark mode toggle.",
       type: "text",
     },
     {
       id: 2,
-      sender: "ai" as "ai", // explicitly type as "ai"
+      sender: "ai",
       content: `
 import React, { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
