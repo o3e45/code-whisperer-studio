@@ -9,17 +9,17 @@ import { ArrowRight, Terminal, Sparkles } from "lucide-react";
 const DemoSection = () => {
   const [activeTab, setActiveTab] = useState("chat");
 
-  // Initial chat messages
+  // Initial chat messages with proper sender types
   const initialMessages = [
     {
       id: 1,
-      sender: "user",
+      sender: "user" as "user", // explicitly type as "user"
       content: "Build me a responsive navigation bar with a logo, links, and a dark mode toggle.",
       type: "text",
     },
     {
       id: 2,
-      sender: "ai",
+      sender: "ai" as "ai", // explicitly type as "ai"
       content: `
 import React, { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
